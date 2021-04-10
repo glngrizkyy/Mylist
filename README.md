@@ -1,6 +1,6 @@
-#My List
+#MyList
 
-A new flutter module project.
+This Application Daily Activities Flutter with Firebase
 
 ## Getting Started
 
