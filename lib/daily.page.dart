@@ -1,22 +1,73 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:mylist/verify.dart';
+import 'package:mylist/model/entry.dart';
+import 'package:mylist/providers/entry.provider.dart';
+import 'package:provider/provider.dart';
 
 class DailyPage extends StatefulWidget {
-  DailyPage({Key key}) : super(key: key);
+  final Entry entry;
+
+  DailyPage({this.entry});
 
   @override
   _DailyPageState createState() => _DailyPageState();
 }
 
 class _DailyPageState extends State<DailyPage> {
+  final entryController = TextEditingController();
+
+  @override
+  void dispose() {
+    entryController.dispose();
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    final entryProvider = Provider.of<EntryProvider>(context, listen: false);
+    if (widget.entry != null) {
+      //edit
+      entryController.text = widget.entry.entry;
+
+      entryProvider.loadAll(widget.entry);
+    } else {
+      //add
+      entryProvider.loadAll(null);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final entryProvider = Provider.of<EntryProvider>(context);
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(125),
         child: AppBar(
+          title: Center(
+            child: Text(
+              formatDate(entryProvider.date, [MM, ' ', d, ', ', yyyy]),
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontSize: 23,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.calendar_today_rounded),
+              onPressed: () {
+                _pickDate(context, entryProvider).then((value) {
+                  if (value != null) {
+                    entryProvider.changeDate = value;
+                  }
+                });
+              },
+            ),
+          ],
           backgroundColor: Colors.blueAccent.shade400,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(
@@ -24,104 +75,116 @@ class _DailyPageState extends State<DailyPage> {
             ),
           ),
           elevation: 0.5,
-          title: Center(
-            child: Container(
-              child: Text(
-                'My Daily Activities',
-                style: TextStyle(
-                  fontFamily: 'Montserrat',
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ),
-          ),
-          flexibleSpace: Positioned(
-            child: Center(
-              child: Container(
-                margin: EdgeInsets.only(top: 30),
-                child: Text(
-                  '',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ),
         ),
       ),
-      body: Container(
-        padding: EdgeInsets.fromLTRB(10, 50, 10, 0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            Container(
-              child: Row(
-                children: <Widget>[
-                  Container(
-                    child: TextField(
-                      decoration: InputDecoration(
-                        prefixIcon: Icon(Icons.text_fields_rounded),
-                        hintText: "Your Activities.",
-                        hintStyle: TextStyle(
-                          fontSize: 12,
-                          fontFamily: 'Montserrat',
-                          fontWeight: FontWeight.w500,
-                          color: Colors.black87,
+      body: ListView(
+        children: [
+          Container(
+            padding: EdgeInsets.only(top: 20, left: 50, right: 50),
+            child: TextField(
+              decoration: InputDecoration(
+                labelText: 'Your Activities',
+                labelStyle: TextStyle(
+                  color: Colors.blueAccent.shade400,
+                  fontFamily: 'Montserrat',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+                border: InputBorder.none,
+              ),
+              maxLines: 12,
+              minLines: 10,
+              onChanged: (String value) => entryProvider.changeEntry = value,
+              controller: entryController,
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 10, right: 5),
+                        child: MaterialButton(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 30,
+                            vertical: 15,
+                          ),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15)),
+                          child: Text(
+                            'Save',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontFamily: 'Montserrat',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          color: Colors.blueAccent.shade400,
+                          onPressed: () {
+                            entryProvider.saveEntry();
+                            Navigator.of(context).pop();
+                          },
                         ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        fillColor: Colors.blue.shade50,
-                        filled: true,
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Container(
-                  margin: EdgeInsets.only(
-                    top: 10,
-                  ),
-                  child: MaterialButton(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 45,
-                      vertical: 15,
-                    ),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Text(
-                      'Register',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontFamily: 'Montserrat',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        margin: EdgeInsets.only(top: 10, left: 5),
+                        child: (widget.entry != null)
+                            ? MaterialButton(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 30,
+                                  vertical: 15,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15)),
+                                child: Text(
+                                  'Delete',
+                                  style: TextStyle(
+                                    color: Colors.white70,
+                                    fontFamily: 'Montserrat',
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                color: Colors.blueAccent.shade400,
+                                onPressed: () {
+                                  entryProvider
+                                      .removeEntry(widget.entry.entryId);
+                                  Navigator.of(context).pop();
+                                },
+                              )
+                            : Container(),
                       ),
-                    ),
-                    color: Colors.blueAccent.shade400,
-                    onPressed: () {
-                      Get.to(
-                        VerifyPage(),
-                        transition: Transition.fadeIn,
-                      );
-                    },
+                    ],
                   ),
-                ),
-              ],
-            )
-          ],
-        ),
+                ],
+              ),
+            ],
+          ),
+        ],
       ),
     );
+  }
+
+  Future<DateTime> _pickDate(
+      BuildContext context, EntryProvider entryProvider) async {
+    final DateTime picked = await showDatePicker(
+        context: context,
+        initialDate: entryProvider.date,
+        firstDate: DateTime(2019),
+        lastDate: DateTime(2050));
+
+    if (picked != null) return picked;
   }
 }

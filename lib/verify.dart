@@ -1,8 +1,12 @@
+import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mylist/daily.page.dart';
 import 'package:mylist/main.page.dart';
 import 'package:get/get.dart';
+import 'package:mylist/model/entry.dart';
+import 'package:mylist/providers/entry.provider.dart';
+import 'package:provider/provider.dart';
 // import 'package:mylist/daily.page.dart';
 
 class VerifyPage extends StatefulWidget {
@@ -26,6 +30,7 @@ class _VerifyPageState extends State<VerifyPage> {
 
   @override
   Widget build(BuildContext context) {
+    final entryProvider = Provider.of<EntryProvider>(context);
     return Scaffold(
       backgroundColor: Colors.blue.shade50,
       appBar: PreferredSize(
@@ -56,11 +61,11 @@ class _VerifyPageState extends State<VerifyPage> {
               child: Container(
                 margin: EdgeInsets.only(top: 30),
                 child: Text(
-                  'Home',
+                  'Hi ${user.email} !',
                   style: TextStyle(
                     fontFamily: 'Montserrat',
-                    fontSize: 18,
-                    fontWeight: FontWeight.w400,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),
                 ),
@@ -69,44 +74,48 @@ class _VerifyPageState extends State<VerifyPage> {
           ),
         ),
       ),
-      body: Center(
-        child: Container(
-          child: Column(
-            children: [
-              Container(
-                margin: EdgeInsets.only(
-                  top: 50,
-                  right: 80,
-                ),
-                child: Text(
-                  'HI ${user.email} !',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 20,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
+      body: StreamBuilder<List<Entry>>(
+          stream: entryProvider.entries,
+          builder: (context, snapshot) {
+            return ListView.builder(
+              itemBuilder: (context, index) {
+                return ListTile(
+                  trailing: Container(
+                    padding: EdgeInsets.fromLTRB(30, 40, 30, 40),
+                    child: Icon(
+                      Icons.edit,
+                      color: Theme.of(context).accentColor,
+                    ),
                   ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(
-                  top: 20,
-                  right: 165,
-                ),
-                child: Text(
-                  'Activity Done.',
-                  style: TextStyle(
-                    fontFamily: 'Montserrat',
-                    fontSize: 16,
-                    fontWeight: FontWeight.w400,
-                    color: Colors.black87,
+                  title: Container(
+                    padding: EdgeInsets.fromLTRB(30, 40, 30, 40),
+                    child: Text(
+                      formatDate(
+                        DateTime.parse(snapshot.data[index].date),
+                        [MM, ' ', d, ', ', yyyy],
+                      ),
+                      style: TextStyle(
+                        fontFamily: 'Montserrat',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400,
+                        color: Colors.black87,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => DailyPage(
+                          entry: snapshot.data[index],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              itemCount: snapshot.data.length,
+            );
+          }),
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.blueAccent.shade400,
         onPressed: () {
@@ -124,7 +133,7 @@ class _VerifyPageState extends State<VerifyPage> {
     user = auth.currentUser;
     await user.reload();
     if (user.emailVerified) {
-      Navigator.of(context)
+      Navigator.maybeOf(context)
           .pushReplacement(MaterialPageRoute(builder: (context) => HomePage()));
     }
   }
