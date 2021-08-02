@@ -2,6 +2,7 @@ import 'package:date_format/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:mylist/daily.page.dart';
+import 'package:mylist/loginregister.page.dart';
 import 'package:mylist/main.page.dart';
 import 'package:get/get.dart';
 import 'package:mylist/model/entry.dart';
@@ -42,9 +43,20 @@ class _VerifyPageState extends State<VerifyPage> {
               bottom: Radius.circular(15),
             ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.logout),
+              onPressed: () {
+                Get.offAll(
+                  LoginRegisterPage(),
+                );
+              },
+            ),
+          ],
           elevation: 0.5,
           title: Center(
             child: Container(
+              margin: EdgeInsets.only(right: 20),
               child: Text(
                 'My Daily Activities : ',
                 style: TextStyle(
@@ -61,7 +73,7 @@ class _VerifyPageState extends State<VerifyPage> {
               child: Container(
                 margin: EdgeInsets.only(top: 30),
                 child: Text(
-                  'Hi ${user.email} !',
+                  'Hi ${user.displayName} !',
                   style: TextStyle(
                     fontFamily: 'Montserrat',
                     fontSize: 20,
@@ -84,6 +96,7 @@ class _VerifyPageState extends State<VerifyPage> {
                     padding: EdgeInsets.fromLTRB(30, 40, 30, 40),
                     child: Icon(
                       Icons.edit,
+                      // ignore: deprecated_member_use
                       color: Theme.of(context).accentColor,
                     ),
                   ),
@@ -103,13 +116,10 @@ class _VerifyPageState extends State<VerifyPage> {
                     ),
                   ),
                   onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
+                    Navigator.of(context).push(MaterialPageRoute(
                         builder: (context) => DailyPage(
-                          entry: snapshot.data[index],
-                        ),
-                      ),
-                    );
+                              entry: snapshot.data[index],
+                            )));
                   },
                 );
               },

@@ -141,7 +141,8 @@ class _DailyPageState extends State<DailyPage> {
                       Container(
                         margin: EdgeInsets.only(top: 10, left: 5),
                         child: (widget.entry != null)
-                            ? MaterialButton(
+                            // ignore: deprecated_member_use
+                            ? RaisedButton(
                                 padding: EdgeInsets.symmetric(
                                   horizontal: 30,
                                   vertical: 15,
@@ -177,6 +178,7 @@ class _DailyPageState extends State<DailyPage> {
     );
   }
 
+  // ignore: missing_return
   Future<DateTime> _pickDate(
       BuildContext context, EntryProvider entryProvider) async {
     final DateTime picked = await showDatePicker(
